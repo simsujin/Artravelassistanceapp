@@ -1,4 +1,4 @@
-import { ArrowLeft, Navigation, Bookmark, Camera, MapPin, Clock, Star, Heart, Hash, Sparkles } from 'lucide-react';
+import { ArrowLeft, Navigation, Bookmark, Camera, MapPin, Clock, Star, Heart, Hash, Sparkles, User } from 'lucide-react';
 import { useState } from 'react';
 import { RoundedCard } from './ui/RoundedCard';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -11,13 +11,29 @@ interface RestaurantDetailScreenProps {
   onNavigate: () => void;
 }
 
-const hashtags = [
-  { tag: '분위기좋아요', count: 127 },
-  { tag: '음식맛있어요', count: 98 },
-  { tag: '친절해요', count: 76 },
-  { tag: '가성비좋아요', count: 54 },
-  { tag: '데이트추천', count: 43 },
-  { tag: '사진맛집', count: 38 },
+const hashtagData = [
+  { tag: '#분위기좋아요', count: 127, users: [
+    { name: '김민준', avatar: '👨', country: '🇰🇷' },
+    { name: 'Sarah Kim', avatar: '👩', country: '🇺🇸' },
+    { name: '佐藤健', avatar: '👨', country: '🇯🇵' },
+  ]},
+  { tag: '#음식맛있어요', count: 98, users: [
+    { name: '이서연', avatar: '👩', country: '🇰🇷' },
+    { name: 'John Smith', avatar: '👨', country: '🇬🇧' },
+  ]},
+  { tag: '#친절해요', count: 76, users: [
+    { name: '박지호', avatar: '👨', country: '🇰🇷' },
+    { name: 'Emma Wilson', avatar: '👩', country: '🇦🇺' },
+  ]},
+  { tag: '#가성비좋아요', count: 54, users: [
+    { name: '최유진', avatar: '👩', country: '🇰🇷' },
+  ]},
+  { tag: '#데이트추천', count: 43, users: [
+    { name: '정민호', avatar: '👨', country: '🇰🇷' },
+  ]},
+  { tag: '#사진맛집', count: 38, users: [
+    { name: '강지우', avatar: '👨', country: '🇰🇷' },
+  ]},
 ];
 
 const popularDishes = [
@@ -53,10 +69,20 @@ export function RestaurantDetailScreen({
   const [isSaved, setIsSaved] = useState(false);
   const [hasVisited, setHasVisited] = useState(false);
   const [showHashtags, setShowHashtags] = useState(false);
+  const [likedTags, setLikedTags] = useState<string[]>([]);
+  const [selectedHashtag, setSelectedHashtag] = useState<typeof hashtagData[0] | null>(null);
 
   const handleLike = () => {
     setHasVisited(true);
     setShowHashtags(true);
+  };
+
+  const toggleLike = (tag: string) => {
+    setLikedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
   };
 
   return (
@@ -107,7 +133,7 @@ export function RestaurantDetailScreen({
             className="flex flex-col items-center gap-2 py-4 bg-white rounded-[18px] border border-gray-200 hover:border-[#4A90E2] transition-colors"
           >
             <Navigation className="w-6 h-6 text-[#4A90E2]" />
-            <span className="text-gray-700">경로</span>
+            <span className="text-gray-700 text-center">경로</span>
           </button>
           
           <button 
@@ -119,7 +145,7 @@ export function RestaurantDetailScreen({
             }`}
           >
             <Bookmark className={`w-6 h-6 ${isSaved ? 'fill-white' : ''}`} />
-            <span>저장</span>
+            <span className="text-center">저장</span>
           </button>
           
           <button
@@ -131,7 +157,7 @@ export function RestaurantDetailScreen({
             }`}
           >
             <Heart className={`w-6 h-6 ${hasVisited ? 'fill-white' : ''}`} />
-            <span>좋아요</span>
+            <span className="text-center">좋아요</span>
           </button>
           
           <button
@@ -139,7 +165,7 @@ export function RestaurantDetailScreen({
             className="flex flex-col items-center gap-2 py-4 bg-[#4A90E2] rounded-[18px] text-white hover:bg-[#357ABD] transition-colors"
           >
             <Camera className="w-6 h-6" />
-            <span>AR 보기</span>
+            <span className="text-center">AR 보기</span>
           </button>
         </div>
 
@@ -158,12 +184,13 @@ export function RestaurantDetailScreen({
                   <h3>방문자들의 의견</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {hashtags.map((item, index) => (
+                  {hashtagData.map((item, index) => (
                     <motion.button
                       key={index}
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ delay: index * 0.05 }}
+                      onClick={() => setSelectedHashtag(item)}
                       className="px-4 py-2 bg-white rounded-full border border-pink-200 hover:border-pink-400 hover:bg-pink-100 transition-colors flex items-center gap-2"
                     >
                       <Hash className="w-4 h-4 text-pink-600" />
@@ -172,9 +199,30 @@ export function RestaurantDetailScreen({
                     </motion.button>
                   ))}
                 </div>
-                <p className="text-pink-700 mt-4">
+                <p className="text-pink-700 mt-4 text-center">
                   💡 좋아요를 눌러주셔서 감사합니다! 다른 여행자들에게 큰 도움이 됩니다.
                 </p>
+                
+                {/* Like/Unlike Hashtags */}
+                <div className="mt-4">
+                  <p className="text-pink-700 mb-2 text-center">당신도 동의하시나요?</p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {hashtagData.map((item, index) => (
+                      <button
+                        key={index}
+                        onClick={() => toggleLike(item.tag)}
+                        className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${
+                          likedTags.includes(item.tag)
+                            ? 'bg-[#EF4444] border-[#EF4444] text-white'
+                            : 'bg-white border-pink-200 text-pink-700 hover:bg-pink-50'
+                        }`}
+                      >
+                        <Heart className={`w-4 h-4 ${likedTags.includes(item.tag) ? 'fill-white' : ''}`} />
+                        <span>{item.tag}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </RoundedCard>
             </motion.div>
           )}
@@ -311,6 +359,61 @@ export function RestaurantDetailScreen({
           </RoundedCard>
         </div>
       </div>
+
+      {/* Hashtag Users Modal */}
+      <AnimatePresence>
+        {selectedHashtag && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end z-50"
+            onClick={() => setSelectedHashtag(null)}
+          >
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="w-full bg-white rounded-t-[30px] p-6 pb-12 max-h-[60vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-center mb-4">
+                <div className="w-12 h-1 bg-gray-300 rounded-full" />
+              </div>
+              
+              <h3 className="mb-2 text-center">{selectedHashtag.tag}</h3>
+              <p className="text-gray-600 mb-6 text-center">{selectedHashtag.count}명이 선택했어요</p>
+
+              <div className="space-y-3">
+                {selectedHashtag.users.map((user, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center gap-4 p-4 bg-[#F7F4EC] rounded-2xl"
+                  >
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#4A90E2] to-[#357ABD] flex items-center justify-center text-2xl">
+                      {user.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4>{user.name}</h4>
+                        <span>{user.country}</span>
+                      </div>
+                      <p className="text-gray-600">여행자</p>
+                    </div>
+                    <button className="w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      <User className="w-5 h-5 text-gray-600" />
+                    </button>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

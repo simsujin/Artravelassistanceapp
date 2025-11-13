@@ -1,9 +1,10 @@
-import { Camera, Search, Landmark, UtensilsCrossed, BookOpen, Star, MapPin } from 'lucide-react';
+import { Camera, Search, Landmark, UtensilsCrossed, BookOpen, Star, MapPin, Navigation as NavigationIcon } from 'lucide-react';
 import { RoundedCard } from './ui/RoundedCard';
 import { CategoryButton } from './ui/CategoryButton';
-import { motion, useAnimation, PanInfo } from 'framer-motion';
+import { motion, useAnimation, PanInfo } from 'motion/react';
 import { useState } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { AnimatePresence } from 'framer-motion';
 
 interface HomeScreenProps {
   onStartAR: () => void;
@@ -18,7 +19,9 @@ const SHEET_POSITIONS = {
 
 export function HomeScreen({ onStartAR, onSelectLandmark }: HomeScreenProps) {
   const [sheetHeight, setSheetHeight] = useState(SHEET_POSITIONS.mid);
+  const [mapOffset, setMapOffset] = useState({ x: 0, y: 0 });
   const controls = useAnimation();
+  const mapControls = useAnimation();
 
   const handleDragEnd = (event: any, info: PanInfo) => {
     const velocity = info.velocity.y;
@@ -47,10 +50,31 @@ export function HomeScreen({ onStartAR, onSelectLandmark }: HomeScreenProps) {
     controls.start({ y: 0 });
   };
 
+  const handleMapDragEnd = (event: any, info: PanInfo) => {
+    setMapOffset({
+      x: mapOffset.x + info.offset.x,
+      y: mapOffset.y + info.offset.y
+    });
+    mapControls.start({ x: 0, y: 0 });
+  };
+
   return (
     <div className="w-full h-full bg-[#FAFAF8] relative overflow-hidden">
-      {/* 2D Map Background */}
-      <div className="absolute inset-0 bg-[#E8F4F8]">
+      {/* 2D Map Background - Draggable */}
+      <motion.div 
+        drag
+        dragConstraints={{ left: -200, right: 200, top: -200, bottom: 200 }}
+        dragElastic={0.1}
+        onDragEnd={handleMapDragEnd}
+        animate={mapControls}
+        style={{ 
+          x: mapOffset.x, 
+          y: mapOffset.y,
+          cursor: 'grab'
+        }}
+        whileTap={{ cursor: 'grabbing' }}
+        className="absolute inset-0 bg-[#E8F4F8]"
+      >
         {/* Map tiles simulation */}
         <svg className="w-full h-full" viewBox="0 0 430 932">
           {/* Roads */}
@@ -78,7 +102,7 @@ export function HomeScreen({ onStartAR, onSelectLandmark }: HomeScreenProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.2 }}
-          className="absolute top-[30%] left-[50%] -translate-x-1/2 -translate-y-1/2"
+          className="absolute top-[30%] left-[50%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
         >
           <div className="relative">
             <MapPin className="w-10 h-10 text-[#EF4444] fill-[#EF4444] drop-shadow-lg" />
@@ -97,7 +121,7 @@ export function HomeScreen({ onStartAR, onSelectLandmark }: HomeScreenProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="absolute top-[45%] left-[35%]"
+          className="absolute top-[45%] left-[35%] pointer-events-none"
         >
           <div className="w-8 h-8 rounded-full bg-[#4A90E2] border-2 border-white shadow-lg flex items-center justify-center">
             <UtensilsCrossed className="w-4 h-4 text-white" />
@@ -108,7 +132,7 @@ export function HomeScreen({ onStartAR, onSelectLandmark }: HomeScreenProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.4 }}
-          className="absolute top-[55%] left-[65%]"
+          className="absolute top-[55%] left-[65%] pointer-events-none"
         >
           <div className="w-8 h-8 rounded-full bg-[#4A90E2] border-2 border-white shadow-lg flex items-center justify-center">
             <UtensilsCrossed className="w-4 h-4 text-white" />
@@ -120,18 +144,53 @@ export function HomeScreen({ onStartAR, onSelectLandmark }: HomeScreenProps) {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.35 }}
-          className="absolute top-[25%] left-[70%]"
+          className="absolute top-[25%] left-[70%] pointer-events-none"
         >
           <div className="w-8 h-8 rounded-full bg-[#F59E0B] border-2 border-white shadow-lg flex items-center justify-center">
             <Landmark className="w-4 h-4 text-white" />
           </div>
         </motion.div>
+      </motion.div>
 
-        {/* Current Location */}
-        <div className="absolute top-[65%] left-[50%] -translate-x-1/2 -translate-y-1/2">
-          <div className="w-4 h-4 rounded-full bg-[#4A90E2] border-2 border-white shadow-lg" />
-        </div>
+      {/* GPS Current Location Button */}
+      <div className="absolute top-32 right-6 z-10">
+        <button className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center border border-gray-200 hover:bg-gray-50 transition-colors">
+          <NavigationIcon className="w-6 h-6 text-[#4A90E2]" />
+        </button>
       </div>
+
+      {/* Current Location Indicator (GPS) - Hidden when sheet is extended */}
+      <AnimatePresence>
+        {sheetHeight < SHEET_POSITIONS.max && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute top-[65%] left-[50%] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
+          >
+            <motion.div
+              animate={{ 
+                scale: [1, 1.2, 1],
+              }}
+              transition={{ duration: 1.5, repeat: Infinity }}
+              className="relative"
+            >
+              <div className="w-5 h-5 rounded-full bg-[#4A90E2] border-4 border-white shadow-lg" />
+              <motion.div
+                className="absolute inset-0 rounded-full bg-[#4A90E2] opacity-20"
+                animate={{ 
+                  scale: [1, 2.5, 1],
+                  opacity: [0.3, 0, 0.3]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </motion.div>
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 whitespace-nowrap px-2 py-1 bg-white/90 backdrop-blur-sm rounded-full shadow-md">
+              <p className="text-xs text-[#4A90E2]">현재 위치</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Top Header Bar */}
       <div className="absolute top-0 left-0 right-0 px-6 pt-12 pb-4 bg-gradient-to-b from-black/30 to-transparent z-10 pointer-events-none">

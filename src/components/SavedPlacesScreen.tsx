@@ -1,6 +1,6 @@
-import { Bookmark, Users, Star, MapPin, Trash2, Grid3x3, List } from 'lucide-react';
+import { Bookmark, Users, Star, MapPin, Trash2, Grid3x3, List, Image } from 'lucide-react';
 import { RoundedCard } from './ui/RoundedCard';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 
 interface SavedPlacesScreenProps {
@@ -81,7 +81,8 @@ const similarStylePlaces = [
 
 export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
   const [selectedTab, setSelectedTab] = useState<'saved' | 'similar'>('saved');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'gallery'>('list');
+  const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   return (
     <div className="w-full h-full bg-[#FAFAF8] overflow-y-auto pb-28">
@@ -106,6 +107,14 @@ export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
                 }`}
               >
                 <Grid3x3 className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setViewMode('gallery')}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  viewMode === 'gallery' ? 'bg-[#4A90E2] text-white' : 'bg-[#F7F4EC] text-gray-600'
+                }`}
+              >
+                <Image className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -144,7 +153,13 @@ export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={viewMode === 'grid' ? 'grid grid-cols-2 gap-4' : 'space-y-4'}
+            className={
+              viewMode === 'gallery' 
+                ? 'grid grid-cols-3 gap-2' 
+                : viewMode === 'grid' 
+                ? 'grid grid-cols-2 gap-4' 
+                : 'space-y-4'
+            }
           >
             {savedPlaces.map((place, index) => (
               <motion.div
@@ -152,10 +167,26 @@ export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: index * 0.1 }}
-                onClick={() => onSelectPlace(place.name)}
+                onClick={() => viewMode === 'gallery' ? setSelectedImage(index) : onSelectPlace(place.name)}
                 className="cursor-pointer"
               >
-                {viewMode === 'list' ? (
+                {viewMode === 'gallery' ? (
+                  <div className="relative w-full aspect-square rounded-xl overflow-hidden">
+                    <img
+                      src={place.image}
+                      alt={place.name}
+                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    <div className="absolute bottom-2 left-2 right-2">
+                      <p className="text-white text-xs truncate">{place.name}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                        <span className="text-white text-xs">{place.rating}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : viewMode === 'list' ? (
                   <RoundedCard className="hover:shadow-xl transition-shadow">
                     <div className="flex gap-4">
                       <div className="w-24 h-24 rounded-2xl bg-gray-200 overflow-hidden flex-shrink-0">
@@ -300,6 +331,90 @@ export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
           </motion.div>
         )}
       </div>
+
+      {/* Gallery Fullscreen Modal */}
+      <AnimatePresence>
+        {selectedImage !== null && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+            onClick={() => setSelectedImage(null)}
+          >
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white z-10"
+            >
+              ✕
+            </button>
+            
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
+              className="relative w-full h-full flex items-center justify-center p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={savedPlaces[selectedImage].image}
+                alt={savedPlaces[selectedImage].name}
+                className="max-w-full max-h-full object-contain"
+              />
+              
+              <div className="absolute bottom-12 left-0 right-0 px-6">
+                <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4">
+                  <h3 className="mb-2">{savedPlaces[selectedImage].name}</h3>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                      <span>{savedPlaces[selectedImage].rating}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-600">{savedPlaces[selectedImage].distance}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    {savedPlaces[selectedImage].tags.map((tag, i) => (
+                      <span
+                        key={i}
+                        className="px-3 py-1 bg-[#F7F4EC] rounded-full text-gray-700"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Navigation arrows */}
+            {selectedImage > 0 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage(selectedImage - 1);
+                }}
+                className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-2xl"
+              >
+                ‹
+              </button>
+            )}
+            {selectedImage < savedPlaces.length - 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImage(selectedImage + 1);
+                }}
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white text-2xl"
+              >
+                ›
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
