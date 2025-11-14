@@ -11,9 +11,11 @@ interface ARViewScreenProps {
 }
 
 const restaurants = [
-  { id: 1, name: 'Le Petit Bistro', type: '프랑스 비스트로', rating: 4.5, distance: '120m', x: 25, y: 35 },
-  { id: 2, name: 'Café de Paris', type: '카페', rating: 4.3, distance: '200m', x: 65, y: 45 },
-  { id: 3, name: 'La Boulangerie', type: '베이커리', rating: 4.7, distance: '80m', x: 40, y: 60 },
+  { id: 1, name: 'Le Jules Verne', type: '프렌치 파인다이닝', rating: 4.7, distance: '850m', x: 25, y: 35 },
+  { id: 2, name: '맥도날드', type: '패스트푸드', rating: 4.2, distance: '350m', x: 65, y: 45 },
+  { id: 3, name: '파이브가이즈', type: '버거 전문점', rating: 4.5, distance: '680m', x: 40, y: 60 },
+  { id: 4, name: '블루보틀', type: '스페셜티 커피', rating: 4.6, distance: '420m', x: 55, y: 25 },
+  { id: 5, name: '스타벅스', type: '커피 체인', rating: 4.3, distance: '290m', x: 30, y: 70 },
 ];
 
 const landmarks = [

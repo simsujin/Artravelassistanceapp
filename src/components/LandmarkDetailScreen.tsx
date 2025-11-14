@@ -1,8 +1,9 @@
-import { ArrowLeft, Navigation, Bookmark, Camera, MapPin, Clock, Star, Heart, Hash, User } from 'lucide-react';
+import { ArrowLeft, Navigation, Bookmark, Camera, MapPin, Clock, Star, Heart, Hash, User, Info } from 'lucide-react';
 import { useState } from 'react';
 import { RoundedCard } from './ui/RoundedCard';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion, AnimatePresence } from 'motion/react';
+import { placesData } from '../data/placesData';
 
 interface LandmarkDetailScreenProps {
   landmark: string | null;
@@ -10,53 +11,44 @@ interface LandmarkDetailScreenProps {
   onARView: () => void;
   onRecommendations: () => void;
   onNavigate: () => void;
+  onUserSelect?: (user: { name: string, avatar: string, country: string }) => void;
 }
-
-const hashtagData = [
-  { tag: '#야경이멋져요', count: 245, users: [
-    { name: '김민준', avatar: '👨', country: '🇰🇷' },
-    { name: 'Sarah Kim', avatar: '👩', country: '🇺🇸' },
-    { name: '佐藤健', avatar: '👨', country: '🇯🇵' },
-    { name: 'Marie Laurent', avatar: '👩', country: '🇫🇷' },
-    { name: '张伟', avatar: '👨', country: '🇨🇳' },
-  ]},
-  { tag: '#사진명소', count: 198, users: [
-    { name: '이서연', avatar: '👩', country: '🇰🇷' },
-    { name: 'John Smith', avatar: '👨', country: '🇬🇧' },
-    { name: 'Anna Müller', avatar: '👩', country: '🇩🇪' },
-    { name: 'Carlos Garcia', avatar: '👨', country: '🇪🇸' },
-  ]},
-  { tag: '#꼭가봐야해요', count: 176, users: [
-    { name: '박지호', avatar: '👨', country: '🇰🇷' },
-    { name: 'Emma Wilson', avatar: '👩', country: '🇦🇺' },
-    { name: 'Lucas Silva', avatar: '👨', country: '🇧🇷' },
-  ]},
-  { tag: '#로맨틱해요', count: 143, users: [
-    { name: '최유진', avatar: '👩', country: '🇰🇷' },
-    { name: 'David Lee', avatar: '👨', country: '🇺🇸' },
-  ]},
-  { tag: '#역사적가치', count: 98, users: [
-    { name: '정민호', avatar: '👨', country: '🇰🇷' },
-    { name: 'Sophie Martin', avatar: '👩', country: '🇫🇷' },
-  ]},
-  { tag: '#파리여행필수', count: 87, users: [
-    { name: '강지우', avatar: '👨', country: '🇰🇷' },
-    { name: 'Lisa Anderson', avatar: '👩', country: '🇺🇸' },
-  ]},
-];
 
 export function LandmarkDetailScreen({ 
   landmark, 
   onBack, 
   onARView, 
   onRecommendations,
-  onNavigate 
+  onNavigate,
+  onUserSelect
 }: LandmarkDetailScreenProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [hasVisited, setHasVisited] = useState(false);
   const [showHashtags, setShowHashtags] = useState(false);
   const [likedTags, setLikedTags] = useState<string[]>([]);
-  const [selectedHashtag, setSelectedHashtag] = useState<typeof hashtagData[0] | null>(null);
+  const [selectedHashtag, setSelectedHashtag] = useState<typeof placeData.hashtags[0] | null>(null);
+
+  // Get place data or use default
+  const placeData = landmark && placesData[landmark] ? placesData[landmark] : {
+    name: '에펠탑',
+    nameEn: 'Eiffel Tower',
+    category: '랜드마크',
+    country: '프랑스',
+    city: '파리',
+    image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&q=80',
+    rating: 4.8,
+    distance: '850m',
+    openHours: '09:00 - 23:00',
+    description: '1889년 파리 만국박람회를 위해 건설된 324m 높이의 철탑입니다.',
+    highlights: ['매시간 정각 조명쇼', '전망대에서 파리 전경'],
+    tips: ['온라인 예매로 대기시간 단축', '일몰 1시간 전 방문 추천'],
+    hashtags: [
+      { tag: '#야경이멋져요', count: 245, users: [
+        { name: '김민준', avatar: '👨', country: '🇰🇷' },
+        { name: 'Sarah Kim', avatar: '👩', country: '🇺🇸' },
+      ]},
+    ]
+  };
 
   const handleLike = () => {
     setHasVisited(true);
@@ -76,8 +68,8 @@ export function LandmarkDetailScreen({
       {/* Hero Image */}
       <div className="relative h-96">
         <ImageWithFallback
-          src="https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&q=80"
-          alt="Eiffel Tower"
+          src={placeData.image}
+          alt={placeData.nameEn}
           className="w-full h-full object-cover"
         />
         
@@ -91,11 +83,11 @@ export function LandmarkDetailScreen({
         </button>
 
         <div className="absolute bottom-6 left-6 right-6">
-          <h1 className="text-white mb-2">에펠탑</h1>
+          <h1 className="text-white mb-2">{placeData.name}</h1>
           <div className="flex items-center gap-4 text-white/90">
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              <span>850m</span>
+              <span>{placeData.distance}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
@@ -103,7 +95,7 @@ export function LandmarkDetailScreen({
             </div>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-white" />
-              <span>4.8</span>
+              <span>{placeData.rating}</span>
             </div>
           </div>
         </div>
@@ -169,7 +161,7 @@ export function LandmarkDetailScreen({
                   <h3>방문자들의 의견</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {hashtagData.map((item, index) => (
+                  {placeData.hashtags.map((item, index) => (
                     <motion.button
                       key={index}
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -192,7 +184,7 @@ export function LandmarkDetailScreen({
                 <div className="mt-4">
                   <p className="text-pink-700 mb-2 text-center">당신도 동의하시나요?</p>
                   <div className="flex flex-wrap gap-2 justify-center">
-                    {hashtagData.map((item, index) => (
+                    {placeData.hashtags.map((item, index) => (
                       <button
                         key={index}
                         onClick={() => toggleLike(item.tag)}
@@ -217,8 +209,7 @@ export function LandmarkDetailScreen({
         <h3 className="mb-3">소개</h3>
         <RoundedCard className="mb-6">
           <p className="text-gray-600">
-            에펠탑은 1889년 파리 만국박람회를 기념하기 위해 건설된 철탑입니다. 
-            높이 324m로 파리에서 가장 높은 건축물이며, 매년 약 700만 명의 관광객이 방문합니다.
+            {placeData.description}
           </p>
         </RoundedCard>
 
@@ -227,7 +218,7 @@ export function LandmarkDetailScreen({
         <RoundedCard className="mb-6">
           <div className="flex items-center justify-between">
             <span className="text-gray-600">매일</span>
-            <span>09:30 - 23:45</span>
+            <span>{placeData.openHours}</span>
           </div>
         </RoundedCard>
 
@@ -313,7 +304,14 @@ export function LandmarkDetailScreen({
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="flex items-center gap-4 p-4 bg-[#F7F4EC] rounded-2xl"
+                    onClick={() => {
+                      setSelectedHashtag(null);
+                      // Navigate to user detail - we'll need to pass this through props
+                      if (onUserSelect) {
+                        onUserSelect(user);
+                      }
+                    }}
+                    className="flex items-center gap-4 p-4 bg-[#F7F4EC] rounded-2xl cursor-pointer hover:bg-[#F0EDE2] transition-colors"
                   >
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#4A90E2] to-[#357ABD] flex items-center justify-center text-2xl">
                       {user.avatar}

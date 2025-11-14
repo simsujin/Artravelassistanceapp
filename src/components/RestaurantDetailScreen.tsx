@@ -1,76 +1,55 @@
-import { ArrowLeft, Navigation, Bookmark, Camera, MapPin, Clock, Star, Heart, Hash, Sparkles, User } from 'lucide-react';
+import { ArrowLeft, Navigation, Bookmark, Camera, MapPin, Clock, Star, Heart, Hash, Sparkles, User, DollarSign } from 'lucide-react';
 import { useState } from 'react';
 import { RoundedCard } from './ui/RoundedCard';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { motion, AnimatePresence } from 'motion/react';
+import { restaurantsData } from '../data/placesData';
 
 interface RestaurantDetailScreenProps {
   restaurant: string | null;
   onBack: () => void;
   onARView: () => void;
   onNavigate: () => void;
+  onUserSelect?: (user: { name: string, avatar: string, country: string }) => void;
 }
-
-const hashtagData = [
-  { tag: '#분위기좋아요', count: 127, users: [
-    { name: '김민준', avatar: '👨', country: '🇰🇷' },
-    { name: 'Sarah Kim', avatar: '👩', country: '🇺🇸' },
-    { name: '佐藤健', avatar: '👨', country: '🇯🇵' },
-  ]},
-  { tag: '#음식맛있어요', count: 98, users: [
-    { name: '이서연', avatar: '👩', country: '🇰🇷' },
-    { name: 'John Smith', avatar: '👨', country: '🇬🇧' },
-  ]},
-  { tag: '#친절해요', count: 76, users: [
-    { name: '박지호', avatar: '👨', country: '🇰🇷' },
-    { name: 'Emma Wilson', avatar: '👩', country: '🇦🇺' },
-  ]},
-  { tag: '#가성비좋아요', count: 54, users: [
-    { name: '최유진', avatar: '👩', country: '🇰🇷' },
-  ]},
-  { tag: '#데이트추천', count: 43, users: [
-    { name: '정민호', avatar: '👨', country: '🇰🇷' },
-  ]},
-  { tag: '#사진맛집', count: 38, users: [
-    { name: '강지우', avatar: '👨', country: '🇰🇷' },
-  ]},
-];
-
-const popularDishes = [
-  {
-    name: 'Coq au Vin',
-    description: '프랑스 전통 요리로, 와인에 조린 닭고기 요리입니다. 버섯과 양파가 곁들여져 깊고 풍부한 맛이 특징입니다.',
-    price: '€24',
-    image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    rating: 4.8
-  },
-  {
-    name: 'Ratatouille',
-    description: '여러 가지 채소를 올리브 오일로 볶아 만든 프로방스 지방의 전통 요리입니다. 건강하면서도 맛있는 채식 메뉴입니다.',
-    price: '€18',
-    image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80',
-    rating: 4.6
-  },
-  {
-    name: 'Beef Bourguignon',
-    description: '부르고뉴 지방의 대표적인 소고기 스튜입니다. 레드 와인에 푹 끓여 부드러운 식감과 진한 풍미가 일품입니다.',
-    price: '€28',
-    image: 'https://images.unsplash.com/photo-1625937286074-9ca519d5d9df?w=400&q=80',
-    rating: 4.9
-  }
-];
 
 export function RestaurantDetailScreen({ 
   restaurant, 
   onBack, 
-  onARView,
-  onNavigate 
+  onARView, 
+  onNavigate,
+  onUserSelect
 }: RestaurantDetailScreenProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [hasVisited, setHasVisited] = useState(false);
   const [showHashtags, setShowHashtags] = useState(false);
   const [likedTags, setLikedTags] = useState<string[]>([]);
-  const [selectedHashtag, setSelectedHashtag] = useState<typeof hashtagData[0] | null>(null);
+  const [selectedHashtag, setSelectedHashtag] = useState<typeof restaurantData.hashtags[0] | null>(null);
+
+  // Get restaurant data or use default
+  const restaurantData = restaurant && restaurantsData[restaurant] ? restaurantsData[restaurant] : {
+    name: 'Le Jules Verne',
+    category: '레스토랑',
+    country: '프랑스',
+    city: '파리',
+    image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80',
+    rating: 4.7,
+    distance: '850m',
+    priceRange: '€€€€',
+    cuisine: '프렌치 파인다이닝',
+    openHours: '12:00 - 13:30, 19:00 - 21:00',
+    description: '에펠탑 2층에 위치한 미슐랭 1스타 레스토랑입니다.',
+    signature: ['푸아그라', '랍스터'],
+    menuItems: [
+      { name: '푸아그라 테리느', description: '무화과 컴포트와 함께', price: '€48', isRecommended: true },
+    ],
+    tips: ['최소 2개월 전 예약 필수'],
+    hashtags: [
+      { tag: '#미슐랭1스타', count: 189, users: [
+        { name: '김민준', avatar: '👨', country: '🇰🇷' },
+      ]},
+    ]
+  };
 
   const handleLike = () => {
     setHasVisited(true);
@@ -90,7 +69,7 @@ export function RestaurantDetailScreen({
       {/* Hero Image */}
       <div className="relative h-96">
         <ImageWithFallback
-          src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80"
+          src={restaurantData.image}
           alt="Restaurant"
           className="w-full h-full object-cover"
         />
@@ -105,12 +84,12 @@ export function RestaurantDetailScreen({
         </button>
 
         <div className="absolute bottom-6 left-6 right-6">
-          <h1 className="text-white mb-2">Le Petit Bistro</h1>
-          <p className="text-white/90 mb-3">프랑스 비스트로 · €€</p>
+          <h1 className="text-white mb-2">{restaurantData.name}</h1>
+          <p className="text-white/90 mb-3">{restaurantData.cuisine} · {restaurantData.priceRange}</p>
           <div className="flex items-center gap-4 text-white/90">
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
-              <span>120m</span>
+              <span>{restaurantData.distance}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
@@ -118,7 +97,7 @@ export function RestaurantDetailScreen({
             </div>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-white" />
-              <span>4.5</span>
+              <span>{restaurantData.rating}</span>
             </div>
           </div>
         </div>
@@ -184,7 +163,7 @@ export function RestaurantDetailScreen({
                   <h3>방문자들의 의견</h3>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {hashtagData.map((item, index) => (
+                  {restaurantData.hashtags.map((item, index) => (
                     <motion.button
                       key={index}
                       initial={{ opacity: 0, scale: 0.8 }}
@@ -207,7 +186,7 @@ export function RestaurantDetailScreen({
                 <div className="mt-4">
                   <p className="text-pink-700 mb-2 text-center">당신도 동의하시나요?</p>
                   <div className="flex flex-wrap gap-2 justify-center">
-                    {hashtagData.map((item, index) => (
+                    {restaurantData.hashtags.map((item, index) => (
                       <button
                         key={index}
                         onClick={() => toggleLike(item.tag)}
@@ -231,133 +210,75 @@ export function RestaurantDetailScreen({
         {/* AI Generated Info */}
         <RoundedCard className="mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200">
           <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-[#4A90E2]" />
-            <h3 className="text-[#4A90E2]">AI 맞춤 정보</h3>
+            <Sparkles className="w-5 h-5 text-[#4A90E2]\" />
+            <h3 className="text-[#4A90E2]\">레스토랑 정보</h3>
           </div>
           <p className="text-gray-700 mb-3">
-            Le Petit Bistro는 파리 5구에 위치한 정통 프랑스 비스트로로, 1985년부터 운영되어온 역사 깊은 레스토랑입니다. 
-            현지인들에게 사랑받는 숨은 맛집으로, 전통 프랑스 가정식 요리를 합리적인 가격에 제공합니다.
+            {restaurantData.description}
           </p>
           <div className="bg-white/80 rounded-2xl p-4">
-            <h4 className="mb-2 text-gray-800">✨ 특별 추천 이유</h4>
-            <ul className="space-y-2 text-gray-700">
-              <li className="flex items-start gap-2">
-                <span className="text-[#4A90E2]">•</span>
-                <span>신선한 재료를 사용한 정통 프랑스 요리</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#4A90E2]">•</span>
-                <span>아늑하고 로맨틱한 분위기, 데이트 장소로 최적</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-[#4A90E2]">•</span>
-                <span>합리적인 가격대로 현지 분위기를 즐길 수 있음</span>
-              </li>
-            </ul>
+            <h4 className="mb-2 text-gray-800">✨ 시그니처 메뉴</h4>
+            <div className="flex flex-wrap gap-2">
+              {restaurantData.signature.map((item, index) => (
+                <span key={index} className="px-3 py-1 bg-gradient-to-r from-amber-100 to-yellow-100 rounded-full text-amber-800">
+                  {item}
+                </span>
+              ))}
+            </div>
           </div>
         </RoundedCard>
 
-        {/* Popular Dishes with AI Info */}
-        <h3 className="mb-3">🔥 인기 메뉴 TOP 3</h3>
-        <div className="space-y-4 mb-6">
-          {popularDishes.map((dish, index) => (
+        {/* Popular Dishes */}
+        <h3 className="mb-3">🍽️ 추천 메뉴</h3>
+        <div className="space-y-3 mb-6">
+          {restaurantData.menuItems.map((dish, index) => (
             <motion.div
               key={index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <RoundedCard className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer">
-                <div className="flex flex-col gap-4">
-                  {/* Image */}
-                  <div className="w-full h-48 rounded-2xl overflow-hidden">
-                    <img
-                      src={dish.image}
-                      alt={dish.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  
-                  {/* Info */}
-                  <div className="px-1">
-                    <div className="flex items-center justify-between mb-2">
+              <RoundedCard className="hover:shadow-xl transition-shadow">
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
                       <h4>{dish.name}</h4>
-                      <span className="text-[#4A90E2]">{dish.price}</span>
+                      {dish.isRecommended && (
+                        <span className="px-2 py-0.5 bg-red-100 text-red-600 rounded-full text-xs">
+                          추천
+                        </span>
+                      )}
                     </div>
-                    
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        <span>{dish.rating}</span>
-                      </div>
-                      <span className="text-gray-400">·</span>
-                      <span className="text-gray-600">고객 추천 메뉴</span>
-                    </div>
-                    
-                    <p className="text-gray-600">{dish.description}</p>
+                    <p className="text-gray-600 mb-2">{dish.description}</p>
                   </div>
+                  <span className="text-[#4A90E2] ml-3">{dish.price}</span>
                 </div>
               </RoundedCard>
             </motion.div>
           ))}
         </div>
 
-        {/* Description */}
-        <h3 className="mb-3">소개</h3>
-        <RoundedCard className="mb-6">
-          <p className="text-gray-600">
-            파리 시내 중심부에 위치한 전통적인 프랑스 비스트로입니다. 
-            신선한 재료로 만든 정통 프랑스 요리와 아늑한 분위기가 특징이며, 
-            현지인과 관광객 모두에게 사랑받는 레스토랑입니다.
-          </p>
+        {/* Tips */}
+        <h3 className="mb-3">💡 여행자 팁</h3>
+        <RoundedCard className="mb-6 bg-amber-50 border border-amber-200">
+          <ul className="space-y-2">
+            {restaurantData.tips.map((tip, index) => (
+              <li key={index} className="flex items-start gap-2 text-gray-700">
+                <span className="text-amber-600 mt-1">•</span>
+                <span>{tip}</span>
+              </li>
+            ))}
+          </ul>
         </RoundedCard>
 
         {/* Opening Hours */}
         <h3 className="mb-3">영업 시간</h3>
         <RoundedCard className="mb-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">월 - 금</span>
-              <span>12:00 - 22:00</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-600">토 - 일</span>
-              <span>11:00 - 23:00</span>
-            </div>
+          <div className="flex items-center justify-between">
+            <span className="text-gray-600">영업시간</span>
+            <span>{restaurantData.openHours}</span>
           </div>
         </RoundedCard>
-
-        {/* Reviews */}
-        <h3 className="mb-3">최근 리뷰</h3>
-        <div className="space-y-3">
-          <RoundedCard>
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-            </div>
-            <p className="text-gray-600 mb-2">
-              "정통 프랑스 요리를 맛볼 수 있는 멋진 곳이에요. 분위기도 아늑하고 직원들도 친절합니다!"
-            </p>
-            <p className="text-gray-400">- 김OO · 2일 전</p>
-          </RoundedCard>
-
-          <RoundedCard>
-            <div className="flex items-center gap-2 mb-2">
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Star className="w-4 h-4 text-gray-300" />
-            </div>
-            <p className="text-gray-600 mb-2">
-              "와인 선택이 훌륭하고 코코뱅이 정말 맛있었어요. 다음에 또 오고 싶습니다."
-            </p>
-            <p className="text-gray-400">- 이OO · 5일 전</p>
-          </RoundedCard>
-        </div>
       </div>
 
       {/* Hashtag Users Modal */}

@@ -1,4 +1,4 @@
-import { Bookmark, Users, Star, MapPin, Trash2, Grid3x3, List, Image } from 'lucide-react';
+import { Bookmark, Users, Star, MapPin, Trash2, List, Image } from 'lucide-react';
 import { RoundedCard } from './ui/RoundedCard';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
@@ -11,6 +11,8 @@ const savedPlaces = [
   {
     name: '에펠탑',
     category: '랜드마크',
+    country: '프랑스',
+    city: '파리',
     image: 'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=400&q=80',
     rating: 4.8,
     distance: '1.2km',
@@ -20,6 +22,8 @@ const savedPlaces = [
   {
     name: '루브르 박물관',
     category: '박물관',
+    country: '프랑스',
+    city: '파리',
     image: 'https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400&q=80',
     rating: 4.9,
     distance: '800m',
@@ -29,6 +33,8 @@ const savedPlaces = [
   {
     name: 'Le Jules Verne',
     category: '레스토랑',
+    country: '프랑스',
+    city: '파리',
     image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&q=80',
     rating: 4.7,
     distance: '1.5km',
@@ -36,13 +42,169 @@ const savedPlaces = [
     tags: ['미슐랭', '프렌치']
   },
   {
-    name: '노트르담 대성당',
+    name: '도쿄 타워',
     category: '랜드마크',
-    image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400&q=80',
-    rating: 4.8,
-    distance: '600m',
+    country: '일본',
+    city: '도쿄',
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&q=80',
+    rating: 4.6,
+    distance: '2.3km',
     savedDate: '1주일 전',
-    tags: ['고딕', '역사']
+    tags: ['야경', '전망대']
+  },
+  {
+    name: '스시 사이토',
+    category: '레스토랑',
+    country: '일본',
+    city: '도쿄',
+    image: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&q=80',
+    rating: 4.9,
+    distance: '1.8km',
+    savedDate: '1주일 전',
+    tags: ['스시', '오마카세']
+  },
+  {
+    name: '센소지',
+    category: '랜드마크',
+    country: '일본',
+    city: '도쿄',
+    image: 'https://images.unsplash.com/photo-1542640244-7e672d6cef4e?w=400&q=80',
+    rating: 4.7,
+    distance: '3.1km',
+    savedDate: '2주일 전',
+    tags: ['사원', '문화']
+  },
+  {
+    name: '맥도날드',
+    category: '레스토랑',
+    country: '일본',
+    city: '도쿄',
+    image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=400&q=80',
+    rating: 4.2,
+    distance: '350m',
+    savedDate: '3일 전',
+    tags: ['패스트푸드', '테리야키']
+  },
+  {
+    name: '콜로세움',
+    category: '랜드마크',
+    country: '이탈리아',
+    city: '로마',
+    image: 'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400&q=80',
+    rating: 4.9,
+    distance: '900m',
+    savedDate: '2주일 전',
+    tags: ['역사', '고대']
+  },
+  {
+    name: '트레비 분수',
+    category: '랜드마크',
+    country: '이탈리아',
+    city: '로마',
+    image: 'https://images.unsplash.com/photo-1525874684015-58379d421a52?w=400&q=80',
+    rating: 4.7,
+    distance: '1.1km',
+    savedDate: '2주일 전',
+    tags: ['사진명소', '로맨틱']
+  },
+  {
+    name: 'Osteria Francescana',
+    category: '레스토랑',
+    country: '이탈리아',
+    city: '모데나',
+    image: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80',
+    rating: 5.0,
+    distance: '2.8km',
+    savedDate: '3주일 전',
+    tags: ['미슐랭', '이탈리안']
+  },
+  {
+    name: '스타벅스',
+    category: '카페',
+    country: '이탈리아',
+    city: '밀라노',
+    image: 'https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=400&q=80',
+    rating: 4.3,
+    distance: '290m',
+    savedDate: '5일 전',
+    tags: ['커피', '로스터리']
+  },
+  {
+    name: '사그라다 파밀리아',
+    category: '랜드마크',
+    country: '스페인',
+    city: '바르셀로나',
+    image: 'https://images.unsplash.com/photo-1583422409516-2895a77efded?w=400&q=80',
+    rating: 4.9,
+    distance: '1.5km',
+    savedDate: '3주일 전',
+    tags: ['건축', '가우디']
+  },
+  {
+    name: '구엘 공원',
+    category: '랜드마크',
+    country: '스페인',
+    city: '바르셀로나',
+    image: 'https://images.unsplash.com/photo-1579282240050-352db0a14c21?w=400&q=80',
+    rating: 4.8,
+    distance: '2.2km',
+    savedDate: '1개월 전',
+    tags: ['예술', '자연']
+  },
+  {
+    name: '왓 아룬',
+    category: '랜드마크',
+    country: '태국',
+    city: '방콕',
+    image: 'https://images.unsplash.com/photo-1563492065213-f0c8c41da0ed?w=800&q=80',
+    rating: 4.7,
+    distance: '800m',
+    savedDate: '1개월 전',
+    tags: ['사원', '야경']
+  },
+  {
+    name: '짜뚜짝 시장',
+    category: '쇼핑',
+    country: '태국',
+    city: '방콕',
+    image: 'https://images.unsplash.com/photo-1598970434795-0c54fe7c0648?w=400&q=80',
+    rating: 4.6,
+    distance: '3.5km',
+    savedDate: '1개월 전',
+    tags: ['쇼핑', '먹거리']
+  },
+  {
+    name: 'Jay Fai',
+    category: '레스토랑',
+    country: '태국',
+    city: '방콕',
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=400&q=80',
+    rating: 4.8,
+    distance: '1.2km',
+    savedDate: '1개월 전',
+    tags: ['미슐랭', '길거리음식']
+  },
+  {
+    name: '파이브가이즈',
+    category: '레스토랑',
+    country: '미국',
+    city: '뉴욕',
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
+    rating: 4.5,
+    distance: '680m',
+    savedDate: '4일 전',
+    tags: ['버거', '프라이']
+  },
+  {
+    name: '블루보틀',
+    category: '카페',
+    country: '미국',
+    city: '샌프란시스코',
+    image: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=400&q=80',
+    rating: 4.6,
+    distance: '420m',
+    savedDate: '6일 전',
+    tags: ['커피', '드립']
   },
 ];
 
@@ -81,8 +243,17 @@ const similarStylePlaces = [
 
 export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
   const [selectedTab, setSelectedTab] = useState<'saved' | 'similar'>('saved');
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'gallery'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'gallery'>('list');
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+
+  // Group places by country
+  const placesByCountry = savedPlaces.reduce((acc, place) => {
+    if (!acc[place.country]) {
+      acc[place.country] = [];
+    }
+    acc[place.country].push(place);
+    return acc;
+  }, {} as Record<string, typeof savedPlaces>);
 
   return (
     <div className="w-full h-full bg-[#FAFAF8] overflow-y-auto pb-28">
@@ -91,32 +262,27 @@ export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
         <div className="px-6 pt-12 pb-4">
           <div className="flex items-center justify-between mb-4">
             <h1>저장한 장소</h1>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setViewMode('list')}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  viewMode === 'list' ? 'bg-[#4A90E2] text-white' : 'bg-[#F7F4EC] text-gray-600'
-                }`}
-              >
-                <List className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  viewMode === 'grid' ? 'bg-[#4A90E2] text-white' : 'bg-[#F7F4EC] text-gray-600'
-                }`}
-              >
-                <Grid3x3 className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setViewMode('gallery')}
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  viewMode === 'gallery' ? 'bg-[#4A90E2] text-white' : 'bg-[#F7F4EC] text-gray-600'
-                }`}
-              >
-                <Image className="w-5 h-5" />
-              </button>
-            </div>
+            {/* View mode buttons - only show in 'saved' tab */}
+            {selectedTab === 'saved' && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    viewMode === 'list' ? 'bg-[#4A90E2] text-white' : 'bg-[#F7F4EC] text-gray-600'
+                  }`}
+                >
+                  <List className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setViewMode('gallery')}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    viewMode === 'gallery' ? 'bg-[#4A90E2] text-white' : 'bg-[#F7F4EC] text-gray-600'
+                  }`}
+                >
+                  <Image className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Tab Navigation */}
@@ -150,108 +316,116 @@ export function SavedPlacesScreen({ onSelectPlace }: SavedPlacesScreenProps) {
       <div className="px-6 pt-6">
         {/* My Saved Places */}
         {selectedTab === 'saved' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={
-              viewMode === 'gallery' 
-                ? 'grid grid-cols-3 gap-2' 
-                : viewMode === 'grid' 
-                ? 'grid grid-cols-2 gap-4' 
-                : 'space-y-4'
-            }
-          >
-            {savedPlaces.map((place, index) => (
+          <>
+            {viewMode === 'gallery' ? (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: index * 0.1 }}
-                onClick={() => viewMode === 'gallery' ? setSelectedImage(index) : onSelectPlace(place.name)}
-                className="cursor-pointer"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
               >
-                {viewMode === 'gallery' ? (
-                  <div className="relative w-full aspect-square rounded-xl overflow-hidden">
-                    <img
-                      src={place.image}
-                      alt={place.name}
-                      className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute bottom-2 left-2 right-2">
-                      <p className="text-white text-xs truncate">{place.name}</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                        <span className="text-white text-xs">{place.rating}</span>
-                      </div>
+                {Object.entries(placesByCountry).map(([country, places]) => (
+                  <div key={country}>
+                    {/* Country Header */}
+                    <div className="mb-4">
+                      <h3 className="mb-1">{country}</h3>
+                      <p className="text-gray-600">{places.length}개 장소</p>
+                    </div>
+
+                    {/* Gallery Grid */}
+                    <div className="grid grid-cols-3 gap-2 mb-6">
+                      {places.map((place, index) => {
+                        const globalIndex = savedPlaces.indexOf(place);
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: index * 0.05 }}
+                            onClick={() => setSelectedImage(globalIndex)}
+                            className="cursor-pointer"
+                          >
+                            <div className="relative w-full aspect-square rounded-xl overflow-hidden">
+                              <img
+                                src={place.image}
+                                alt={place.name}
+                                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <p className="text-white text-xs truncate">{place.name}</p>
+                                <div className="flex items-center gap-1 mt-1">
+                                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                                  <span className="text-white text-xs">{place.rating}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
                     </div>
                   </div>
-                ) : viewMode === 'list' ? (
-                  <RoundedCard className="hover:shadow-xl transition-shadow">
-                    <div className="flex gap-4">
-                      <div className="w-24 h-24 rounded-2xl bg-gray-200 overflow-hidden flex-shrink-0">
-                        <img
-                          src={place.image}
-                          alt={place.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-1">
-                          <div>
-                            <h4 className="mb-1">{place.name}</h4>
-                            <p className="text-gray-600">{place.category}</p>
-                          </div>
-                          <button className="p-2 hover:bg-red-50 rounded-full transition-colors">
-                            <Trash2 className="w-4 h-4 text-red-500" />
-                          </button>
-                        </div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          <span className="text-gray-600">{place.rating}</span>
-                          <span className="text-gray-400">·</span>
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-600">{place.distance}</span>
-                        </div>
-                        <div className="flex gap-2">
-                          {place.tags.map((tag, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-1 bg-[#F7F4EC] rounded-full text-gray-700 text-xs text-center"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-gray-400 text-xs mt-2">저장: {place.savedDate}</p>
-                      </div>
-                    </div>
-                  </RoundedCard>
-                ) : (
-                  <RoundedCard className="hover:shadow-xl transition-shadow overflow-hidden">
-                    <div className="relative">
-                      <div className="w-full h-32 rounded-2xl bg-gray-200 overflow-hidden mb-3">
-                        <img
-                          src={place.image}
-                          alt={place.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <button className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-red-50 transition-colors">
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </button>
-                    </div>
-                    <h4 className="mb-1 text-center">{place.name}</h4>
-                    <p className="text-gray-600 mb-2 text-center">{place.category}</p>
-                    <div className="flex items-center justify-center gap-2">
-                      <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                      <span className="text-gray-600 text-sm">{place.rating}</span>
-                    </div>
-                  </RoundedCard>
-                )}
+                ))}
               </motion.div>
-            ))}
-          </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-4"
+              >
+                {savedPlaces.map((place, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => onSelectPlace(place.name)}
+                    className="cursor-pointer"
+                  >
+                    <RoundedCard className="hover:shadow-xl transition-shadow">
+                      <div className="flex gap-4">
+                        <div className="w-24 h-24 rounded-2xl bg-gray-200 overflow-hidden flex-shrink-0">
+                          <img
+                            src={place.image}
+                            alt={place.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-start justify-between mb-1">
+                            <div>
+                              <h4 className="mb-1">{place.name}</h4>
+                              <p className="text-gray-600">{place.category}</p>
+                            </div>
+                            <button className="p-2 hover:bg-red-50 rounded-full transition-colors">
+                              <Trash2 className="w-4 h-4 text-red-500" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                            <span className="text-gray-600">{place.rating}</span>
+                            <span className="text-gray-400">·</span>
+                            <MapPin className="w-4 h-4 text-gray-400" />
+                            <span className="text-gray-600">{place.distance}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            {place.tags.map((tag, i) => (
+                              <span
+                                key={i}
+                                className="px-2 py-1 bg-[#F7F4EC] rounded-full text-gray-700 text-xs text-center"
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-gray-400 text-xs mt-2">저장: {place.savedDate}</p>
+                        </div>
+                      </div>
+                    </RoundedCard>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </>
         )}
 
         {/* Similar Travel Style Places */}

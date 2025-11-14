@@ -159,9 +159,9 @@ export function HomeScreen({ onStartAR, onSelectLandmark }: HomeScreenProps) {
         </button>
       </div>
 
-      {/* Current Location Indicator (GPS) - Hidden when sheet is extended */}
+      {/* Current Location Indicator (GPS) - Hidden when sheet is dragged up */}
       <AnimatePresence>
-        {sheetHeight < SHEET_POSITIONS.max && (
+        {sheetHeight === SHEET_POSITIONS.min && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}

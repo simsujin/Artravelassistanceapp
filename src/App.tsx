@@ -15,12 +15,15 @@ import { LandmarkDetailScreen } from './components/LandmarkDetailScreen';
 import { RestaurantDetailScreen } from './components/RestaurantDetailScreen';
 import { RecommendationScreen } from './components/RecommendationScreen';
 import { NavigationMapScreen } from './components/NavigationMapScreen';
+import { UserDetailScreen } from './components/UserDetailScreen';
 import { BottomNavigation } from './components/BottomNavigation';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('splash');
   const [selectedLandmark, setSelectedLandmark] = useState<string | null>(null);
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<{ name: string, avatar: string, country: string } | null>(null);
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
 
   const navigateTo = (screen: string) => {
     setCurrentScreen(screen);
@@ -34,6 +37,16 @@ function App() {
   const selectRestaurant = (restaurant: string) => {
     setSelectedRestaurant(restaurant);
     setCurrentScreen('restaurant-detail');
+  };
+
+  const selectUser = (user: { name: string, avatar: string, country: string }) => {
+    setSelectedUser(user);
+    setCurrentScreen('user-detail');
+  };
+
+  const handleOnboardingComplete = () => {
+    setHasCompletedOnboarding(true);
+    navigateTo('permissions');
   };
 
   // Screens that should show bottom navigation
@@ -55,9 +68,9 @@ function App() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[#FAFAF8]">
       <div className="relative w-full max-w-[430px] h-[932px] bg-white overflow-hidden shadow-2xl rounded-[60px]">
-        {currentScreen === 'splash' && <SplashScreen onNext={() => navigateTo('onboarding')} />}
-        {currentScreen === 'onboarding' && <OnboardingScreen onNext={() => navigateTo('login')} />}
-        {currentScreen === 'login' && <LoginScreen onLogin={() => navigateTo('permissions')} />}
+        {currentScreen === 'splash' && <SplashScreen onNext={() => navigateTo('login')} />}
+        {currentScreen === 'login' && <LoginScreen onLogin={() => navigateTo('onboarding')} />}
+        {currentScreen === 'onboarding' && <OnboardingScreen onComplete={handleOnboardingComplete} />}
         {currentScreen === 'permissions' && <PermissionsScreen onComplete={() => navigateTo('home')} />}
         
         {currentScreen === 'home' && (
@@ -119,6 +132,7 @@ function App() {
             onARView={() => navigateTo('ar-view')}
             onRecommendations={() => navigateTo('recommendations')}
             onNavigate={() => navigateTo('navigation')}
+            onUserSelect={selectUser}
           />
         )}
         {currentScreen === 'restaurant-detail' && (
@@ -127,6 +141,7 @@ function App() {
             onBack={() => navigateTo('ar-view')}
             onARView={() => navigateTo('ar-view')}
             onNavigate={() => navigateTo('navigation')}
+            onUserSelect={selectUser}
           />
         )}
         {currentScreen === 'recommendations' && (
@@ -139,6 +154,13 @@ function App() {
           <NavigationMapScreen 
             onBack={() => navigateTo('landmark-detail')}
             onARView={() => navigateTo('ar-view')}
+          />
+        )}
+        {currentScreen === 'user-detail' && (
+          <UserDetailScreen 
+            user={selectedUser}
+            onBack={() => navigateTo('landmark-detail')}
+            onSelectPlace={selectLandmark}
           />
         )}
         
