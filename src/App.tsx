@@ -17,6 +17,7 @@ import { RecommendationScreen } from './components/RecommendationScreen';
 import { NavigationMapScreen } from './components/NavigationMapScreen';
 import { UserDetailScreen } from './components/UserDetailScreen';
 import { BottomNavigation } from './components/BottomNavigation';
+import { placesData, restaurantsData } from './data/placesData';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('splash');
@@ -42,6 +43,17 @@ function App() {
   const selectUser = (user: { name: string, avatar: string, country: string }) => {
     setSelectedUser(user);
     setCurrentScreen('user-detail');
+  };
+
+  // Smart place selector - determines if it's a landmark or restaurant
+  const selectPlace = (placeName: string) => {
+    // Check if it's in restaurantsData
+    if (restaurantsData[placeName]) {
+      selectRestaurant(placeName);
+    } else {
+      // Otherwise treat as landmark
+      selectLandmark(placeName);
+    }
   };
 
   const handleOnboardingComplete = () => {
@@ -83,19 +95,13 @@ function App() {
         {currentScreen === 'explore' && (
           <ExploreScreen
             onBack={() => navigateTo('home')}
-            onSelectPlace={(place) => {
-              setSelectedLandmark(place);
-              navigateTo('landmark-detail');
-            }}
+            onSelectPlace={selectPlace}
           />
         )}
 
         {currentScreen === 'saved' && (
           <SavedPlacesScreen
-            onSelectPlace={(place) => {
-              setSelectedLandmark(place);
-              navigateTo('landmark-detail');
-            }}
+            onSelectPlace={selectPlace}
           />
         )}
 
@@ -128,7 +134,14 @@ function App() {
         {currentScreen === 'landmark-detail' && (
           <LandmarkDetailScreen 
             landmark={selectedLandmark}
-            onBack={() => navigateTo('home')}
+            onBack={() => {
+              // Smart back navigation - return to where we came from
+              if (currentScreen === 'landmark-detail') {
+                navigateTo('saved');
+              } else {
+                navigateTo('home');
+              }
+            }}
             onARView={() => navigateTo('ar-view')}
             onRecommendations={() => navigateTo('recommendations')}
             onNavigate={() => navigateTo('navigation')}
@@ -138,7 +151,10 @@ function App() {
         {currentScreen === 'restaurant-detail' && (
           <RestaurantDetailScreen 
             restaurant={selectedRestaurant}
-            onBack={() => navigateTo('ar-view')}
+            onBack={() => {
+              // Smart back navigation - return to saved or ar-view
+              navigateTo('saved');
+            }}
             onARView={() => navigateTo('ar-view')}
             onNavigate={() => navigateTo('navigation')}
             onUserSelect={selectUser}
@@ -147,7 +163,7 @@ function App() {
         {currentScreen === 'recommendations' && (
           <RecommendationScreen 
             onBack={() => navigateTo('landmark-detail')}
-            onSelectPlace={selectLandmark}
+            onSelectPlace={selectPlace}
           />
         )}
         {currentScreen === 'navigation' && (
@@ -160,7 +176,7 @@ function App() {
           <UserDetailScreen 
             user={selectedUser}
             onBack={() => navigateTo('landmark-detail')}
-            onSelectPlace={selectLandmark}
+            onSelectPlace={selectPlace}
           />
         )}
         
