@@ -27,16 +27,19 @@ serve(async (req) => {
     if (!PY_API_URL) throw new Error('PYTHON_API_URL 환경변수가 없습니다. Supabase Secrets를 확인하세요.')
 
     // 3. 앱에서 보낸 데이터 받기
-    const {liked_places} = await req.json()
+    const { liked_places} = await req.json()
 
     console.log(`Tossing to Python Server: ${PY_API_URL}/recommend/next`)
 
     // 4. 파이썬 서버로 전달 (POST)
     //여기서 어떤 파이썬 엔드포인트로 전달할지 받는 데이터에 따라 다르게 하도록 ROUTER 역할을 하게 할 수 있다. 
+
     const pyResponse = await fetch(`${PY_API_URL}/places/details`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
+        //saved_place_ids: saved_place_ids || [], 
+        //liked_itinery_ids: liked_itinery_ids || [] 
         liked_places: liked_places || []
       }),
     })
