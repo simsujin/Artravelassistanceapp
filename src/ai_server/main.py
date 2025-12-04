@@ -33,10 +33,17 @@ def get_places_details(data: PlaceDetailsRequest):
         # Supabase 쿼리 수정
         # 1. 컬럼: type (기존 big_category 아님)
         # 2. 필터: .in_("id", 리스트) -> 리스트 안에 있는 ID들만 가져옴
-        response = supabase.table("Place") \
-            .select("name_en, type, recommended_for") \
-            .in_("place_id", data.liked_places) \
+        #response = supabase.table("Place") \
+         #   .select("name_en, type, recommended_for") \
+         #   .in_("place_id", data.liked_places) \
+         #   .execute()
+        
+        response = (
+            supabase.table("Place")
+            .select("name")
+            .in_("place_id", data.liked_places)
             .execute()
+        )
         
         # 결과 반환 (DB 컬럼명이 이미 'type'이므로 별도 가공 없이 그대로 줍니다)
         return {
