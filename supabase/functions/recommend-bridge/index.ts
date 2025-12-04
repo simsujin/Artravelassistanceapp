@@ -32,7 +32,7 @@ serve(async (req) => {
     console.log(`Tossing to Python Server: ${PY_API_URL}/recommend/next`)
 
     // 4. 파이썬 서버로 전달 (POST)
-    const pyResponse = await fetch(`${PY_API_URL}/recommend/next`, {
+    const pyResponse = await fetch(`${PY_API_URL}/places/details`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
