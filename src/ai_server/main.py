@@ -40,7 +40,7 @@ def get_places_details(data: PlaceDetailsRequest):
         
         response = (
             supabase.table("Place")
-            .select("name")
+            .select("name_kr")
             .in_("place_id", data.liked_places)
             .execute()
         )
