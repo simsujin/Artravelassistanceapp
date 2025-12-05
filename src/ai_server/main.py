@@ -3,7 +3,8 @@ from pydantic import BaseModel
 from supabase import create_client
 import os
 from dotenv import load_dotenv
-from typing import List
+from typing import List, Optional
+import recommender_location
 
 load_dotenv()
 
@@ -13,15 +14,25 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- [1] 주문서 양식 (Input Schema) 수정됨 ---
+#=====주문서 양식=====
+#테스트용
 class PlaceDetailsRequest(BaseModel):
     liked_places: List[int]  # 예: [1, 5, 10]
+
+#위치기반 추천
+class LocationRequestModel(BaseModel):
+    request: str
+    user_id: str
+    lat: float  # 위도는 실수형
+    lng: float  # 경도는 실수형
+    search_radius_km: Optional[float] = 2.5
+
 
 @app.get("/")
 def health_check():
     return {"status": "Active"}
 
-# --- [2] 요청받은 ID들의 정보(이름, 타입, 추천대상) 가져오기 ---
+# --- 테스트용
 @app.post("/places/details")
 def get_places_details(data: PlaceDetailsRequest):
     try:
@@ -54,3 +65,26 @@ def get_places_details(data: PlaceDetailsRequest):
     except Exception as e:
         print(f"에러 발생: {e}")
         return {"status": "Error", "detail": str(e)}
+
+#위치기반 추천
+@app.post("/recommend/location")
+async def get_location_based_recommendations(input_data: LocationRequestModel):
+    """
+    위치 정보를 받아 추천 장소를 반환하는 API
+    """
+    try:
+        # Pydantic 모델을 딕셔너리 형태로 변환 (함수 인풋 형식에 맞춤)
+        location_input = input_data.dict()
+        
+        # 요청 타입 확인 (선택 사항)
+        if location_input.get("request") != "location":
+            raise HTTPException(status_code=400, detail="Invalid request type")
+
+        # recommender_location 모듈의 함수 호출
+        recommendation_results = recommender_location.get_recommendations(location_input)
+        
+        return recommendation_results
+
+    except Exception as e:
+        # 에러 발생 시 처리
+        raise HTTPException(status_code=500, detail=str(e))
