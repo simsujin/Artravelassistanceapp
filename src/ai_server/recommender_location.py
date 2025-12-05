@@ -35,7 +35,7 @@ def get_recommendations(location_input):
     user_id = location_input["user_id"]
     user_lat = location_input["lat"]
     user_lng = location_input["lng"]
-    search_radius_km = 2.5 # Get radius from input, default to 3km
+    search_radius_km = 2.5 
 
     # 1. Retrieve Nearby Places with valid embeddings
     response_all_places = (
@@ -43,7 +43,10 @@ def get_recommendations(location_input):
         .select("place_id, lat, lng, embedding")
         .execute()
     )
+    
     all_places = response_all_places.data
+    #DEBUG
+    print("places collected:",len(all_places))
 
     nearby_places_data = []
     for place in all_places:
@@ -52,6 +55,8 @@ def get_recommendations(location_input):
         distance = haversine_distance(user_lat, user_lng, place_lat, place_lng)
 
         if distance <= search_radius_km:
+            #DEBUG
+            print(f"[NEARBY] place_id={place['place_id']} distance={distance}")
             embedding_str = place['embedding']
             if embedding_str:
                 try:
@@ -64,7 +69,7 @@ def get_recommendations(location_input):
                         "distance": distance
                     })
                 except json.JSONDecodeError:
-                    # Skip if embedding string is malformed JSON
+                    print(f"[EMBEDDING ERROR] place_id={place['place_id']} error={e}")
                     continue
 
     # 2. Retrieve User Profile Embedding 
@@ -90,13 +95,16 @@ def get_recommendations(location_input):
     )
     liked_place_ids = [item['place_id'] for item in response_liked_places.data]
     user_relevant_place_ids.extend(liked_place_ids)
+    print("SavedPlaces:", saved_place_ids)
+    print("LikedPlaces:", liked_place_ids)
+    print("User relevant place IDs:", user_relevant_place_ids)
     
     # Remove duplicates and ensure there are relevant places
     user_relevant_place_ids = list(set(user_relevant_place_ids))
 
     if not user_relevant_place_ids:
         # If no liked/saved places, cannot create profile embedding
-        raise ValueError(f"User {user_id} has no saved or liked places to build a profile embedding.")
+        print(f"User {user_id} has no saved or liked places to build a profile embedding.")
 
     # Fetch the embeddings for these relevant places from the 'Place' table
     response_user_places_embeddings = (
@@ -118,12 +126,20 @@ def get_recommendations(location_input):
                     user_embeddings.append(place_embedding)
             except (json.JSONDecodeError, ValueError):
                 continue
-
+    
+    #DEBUG
+    print("User embeddings collected:", len(user_embeddings))
+    if len(user_embeddings) > 0:
+        print("Example user embedding:", user_embeddings[0][:5])  
+    
+    
     if user_embeddings:
         user_profile_embedding = np.mean(user_embeddings, axis=0).tolist()
     else:
         raise ValueError(f"No valid embeddings found for user {user_id}'s saved/liked places.")
-
+    
+    print("Nearby places with valid embeddings:", len(nearby_places_data))
+    
     # 3. Calculate Recommendation Scores
     recommendations = []
     if user_profile_embedding and nearby_places_data:
