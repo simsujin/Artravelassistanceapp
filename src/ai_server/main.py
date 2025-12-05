@@ -26,7 +26,6 @@ class LocationRequestModel(BaseModel):
     user_id: str
     lat: float  # 위도는 실수형
     lng: float  # 경도는 실수형
-    search_radius_km: Optional[float] = 2.5
 
 
 @app.get("/")

@@ -35,6 +35,7 @@ def get_recommendations(location_input):
     user_id = location_input["user_id"]
     user_lat = location_input["lat"]
     user_lng = location_input["lng"]
+    search_radius_km = 2.5 # Get radius from input, default to 3km
 
     # 1. Retrieve Nearby Places with valid embeddings
     response_all_places = (
@@ -148,5 +149,7 @@ def get_recommendations(location_input):
     recommendations.sort(key=lambda x: x['rec_score'], reverse=True)
 
     return recommendations
+
+
 
 
