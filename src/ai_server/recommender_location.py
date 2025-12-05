@@ -35,7 +35,9 @@ def get_recommendations(location_input):
     user_id = location_input["user_id"]
     user_lat = location_input["lat"]
     user_lng = location_input["lng"]
-    search_radius_km = 20
+    search_radius_km = 10
+    #DEBUG
+    print(f"[DEBUG] user_id={user_id}, user_lat={user_lat}, user_lng={user_lng}")
 
     # 1. Retrieve Nearby Places with valid embeddings
     response_all_places = (
@@ -49,14 +51,34 @@ def get_recommendations(location_input):
     print("places collected:",len(all_places))
 
     nearby_places_data = []
+    min_distance = float("inf")
+    max_distance = 0
+    sample_count = 0
+
     for place in all_places:
         place_lat = place['lat']
         place_lng = place['lng']
         distance = haversine_distance(user_lat, user_lng, place_lat, place_lng)
 
+        # 거리 통계 기록
+        if distance < min_distance:
+            min_distance = distance
+        if distance > max_distance:
+            max_distance = distance
+
+        # 앞의 몇 개만 샘플로 찍어보기
+        if sample_count < 30:
+            print(
+                f"[DIST] place_id={place['place_id']} "
+                f"place_lat={place_lat}, place_lng={place_lng}, "
+                f"distance={distance}",
+                flush=True
+            )
+            sample_count += 1
+
         if distance <= search_radius_km:
-            #DEBUG
-            print(f"[NEARBY] place_id={place['place_id']} distance={distance}")
+            print(f"[NEARBY] place_id={place['place_id']} distance={distance}", flush=True)
+
             embedding_str = place['embedding']
             if embedding_str:
                 try:
@@ -68,9 +90,13 @@ def get_recommendations(location_input):
                         "lng": place['lng'],
                         "distance": distance
                     })
-                except json.JSONDecodeError:
-                    print(f"[EMBEDDING ERROR] place_id={place['place_id']} error={e}")
+                except json.JSONDecodeError as e:
+                    print(f"[EMBEDDING ERROR] place_id={place['place_id']} error={e}", flush=True)
                     continue
+
+    print(f"[SUMMARY] min_distance={min_distance}, max_distance={max_distance}", flush=True)
+    print("nearby places collected:", len(nearby_places_data), flush=True)
+
 
     # 2. Retrieve User Profile Embedding 
     user_profile_embedding = None
