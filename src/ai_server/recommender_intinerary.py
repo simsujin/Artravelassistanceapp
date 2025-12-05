@@ -1,21 +1,6 @@
 import math
 import json
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_similaritys
-import os
-import supabase
-from supabase import create_client
-import recommender_location as rlc
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-#rlc.haversine_distance(lat1, lon1, lat2, lon2) # distance 가져오기
-
-import math
-import json
-import numpy as np
 from supabase import create_client, Client
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -23,6 +8,14 @@ from sklearn.metrics.pairwise import cosine_similarity
 url = "https://gvtmqaakgyorevninbmt.supabase.co"
 key = "sb_secret_WziBehEDoaGk4FOUGIYd5Q_qVJcs3Lj"
 supabase: Client = create_client(url, key)
+
+# Fetch all places once when the module is imported
+response_all_places = (
+    supabase.table("Place")
+    .select("place_id, lat, lng, embedding")
+    .execute()
+)
+all_places = response_all_places.data
 
 # Haversine Distance Function
 def haversine_distance(lat1, lon1, lat2, lon2):
@@ -74,7 +67,7 @@ def get_user_profile_embeddings(user_id, all_places, supabase):
         .execute()
     )
     saved_place_ids = [item['place_id'] for item in response_saved_places.data]
-    print(f"Saved Place IDs: {saved_place_ids}")
+    # print(f"Saved Place IDs: {saved_place_ids}")
 
     response_liked_places = (
         supabase.table("LikedPlaces")
@@ -83,10 +76,10 @@ def get_user_profile_embeddings(user_id, all_places, supabase):
         .execute()
     )
     liked_place_ids = [item['place_id'] for item in response_liked_places.data]
-    print(f"Liked Place IDs: {liked_place_ids}")
+    # print(f"Liked Place IDs: {liked_place_ids}")
 
     combined_place_ids = list(set(saved_place_ids + liked_place_ids))
-    print(f"Combined Unique Place IDs: {combined_place_ids}")
+    # print(f"Combined Unique Place IDs: {combined_place_ids}")
 
     user_profile_embeddings = []
 
@@ -101,7 +94,7 @@ def get_user_profile_embeddings(user_id, all_places, supabase):
         if not user_profile_embeddings:
             print("No embeddings found for the saved/liked places.")
 
-    print(f"Collected {len(user_profile_embeddings)} embeddings for saved/liked places.")
+    # print(f"Collected {len(user_profile_embeddings)} embeddings for saved/liked places.")
     return user_profile_embeddings
 
 # Function to calculate recommendation scores
@@ -121,7 +114,7 @@ def calculate_recommendation_scores(user_profile_embeddings, nearby_places):
 
         if user_profile_np_embeddings:
             average_user_embedding = np.mean(user_profile_np_embeddings, axis=0)
-            print("Successfully created average user embedding.")
+            # print("Successfully created average user embedding.")
         else:
             print("No valid user profile embeddings found after parsing.")
             average_user_embedding = None
@@ -150,10 +143,10 @@ def calculate_recommendation_scores(user_profile_embeddings, nearby_places):
 
         recommended_places.sort(key=lambda x: x['similarity_score'], reverse=True)
 
-        print("\nTop Recommended Places:")
-        for i, rec_place in enumerate(recommended_places):
-            if i < 10: # Print top 10 for brevity
-                print(f"Place ID: {rec_place['place_id']}, Similarity Score: {rec_place['similarity_score']:.4f}")
+        # print("\nTop Recommended Places:")
+        # for i, rec_place in enumerate(recommended_places):
+        #     if i < 10: # Print top 10 for brevity
+        #         print(f"Place ID: {rec_place['place_id']}, Similarity Score: {rec_place['similarity_score']:.4f}")
     else:
         print("Cannot calculate recommendations without an average user embedding.")
     
@@ -168,7 +161,7 @@ def get_itinerary_places(itinerary_id, supabase):
         .execute()
     )
     itinerary_place_ids = [item['place_id'] for item in response_itinerary_places.data]
-    print(f"Itinerary Place IDs for itinerary {itinerary_id}: {itinerary_place_ids}")
+    # print(f"Itinerary Place IDs for itinerary {itinerary_id}: {itinerary_place_ids}")
     return itinerary_place_ids
 
 # Function to exclude existing itinerary places
@@ -177,13 +170,14 @@ def exclude_existing_itinerary_places(recommended_places, itinerary_place_ids):
         place for place in recommended_places 
         if place['place_id'] not in itinerary_place_ids
     ]
-    print(f"Excluded {len(recommended_places) - len(filtered_recommendations)} places already in the itinerary.")
-    print(f"Final Recommended Places (after exclusion): {len(filtered_recommendations)}")
+    # print(f"Excluded {len(recommended_places) - len(filtered_recommendations)} places already in the itinerary.")
+    # print(f"Final Recommended Places (after exclusion): {len(filtered_recommendations)}")
     return filtered_recommendations
 
 # Main recommendation function
-def recommend_next_place(input_data, all_places, haversine_distance, supabase):
+def recommend_next_place(input_data):
     # 1. Filter places by proximity
+    # haversine_distance, all_places, supabase are now module-level variables/functions
     nearby_places = get_nearby_places(input_data, all_places, haversine_distance)
     if not nearby_places:
         return "1.5km내 장소가 없습니다"
@@ -217,15 +211,7 @@ if __name__ == "__main__":
         "day_id" : 3
     }
 
-    # Fetch all places (this part would typically be done once or from a cache)
-    response_all_places = (
-        supabase.table("Place")
-        .select("place_id, lat, lng, embedding")
-        .execute()
-    )
-    all_places = response_all_places.data
-
-    final_recommendations = recommend_next_place(input_data, all_places, haversine_distance, supabase)
+    final_recommendations = recommend_next_place(input_data)
 
     print("\n--- Final Recommendations --- ")
     if isinstance(final_recommendations, str):
