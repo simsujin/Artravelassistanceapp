@@ -3,8 +3,9 @@ from pydantic import BaseModel
 from supabase import create_client
 import os
 from dotenv import load_dotenv
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 import recommender_location
+import supabase
 
 load_dotenv()
 
@@ -67,7 +68,7 @@ def get_places_details(data: PlaceDetailsRequest):
         return {"status": "Error", "detail": str(e)}
 
 #위치기반 추천
-@app.post("/recommend/location")
+@app.post("/recommend/location",response_model=List[Dict[str, Any]])
 async def get_location_based_recommendations(input_data: LocationRequestModel):
     """
     위치 정보를 받아 추천 장소를 반환하는 API

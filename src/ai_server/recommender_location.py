@@ -1,8 +1,14 @@
 import math
 import json
 import numpy as np
-from numpy.linalg import norm
-from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_similarity
+from sklearn.metrics.pairwise import cosine_similarity as sk_cosine_similaritys
+import os
+import supabase
+from supabase import create_client
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # final_recommendations = get_recommendations(location_input)
 
@@ -61,40 +67,62 @@ def get_recommendations(location_input):
                     # Skip if embedding string is malformed JSON
                     continue
 
-    # 2. Retrieve User Profile Embedding
-    user_persona = None
-    for persona_name, persona_details in personas_data.items():
-        if persona_details['user_id'] == user_id:
-            user_persona = persona_details
-            break
-
+    # 2. Retrieve User Profile Embedding 
     user_profile_embedding = None
-    if user_persona:
-        saved_place_ids = user_persona['saved_place_ids']
-        liked_place_ids = user_persona['liked_place_ids']
-        user_relevant_place_ids = list(set(saved_place_ids + liked_place_ids))
+    user_relevant_place_ids = []
 
-        response_user_places = (
-            supabase.table("Place")
-            .select("place_id, embedding")
-            .in_("place_id", user_relevant_place_ids)
-            .execute()
-        )
-        user_places_data = response_user_places.data
+    # Fetch saved places
+    response_saved_places = (
+        supabase.table("SavedPlaces")
+        .select("place_id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    saved_place_ids = [item['place_id'] for item in response_saved_places.data]
+    user_relevant_place_ids.extend(saved_place_ids)
 
-        user_embeddings = []
-        for place in user_places_data:
-            embedding_str = place['embedding']
-            if embedding_str:
-                try:
-                    embedding_list = json.loads(embedding_str)
-                    place_embedding = [float(e) for e in embedding_list]
+    # Fetch liked places
+    response_liked_places = (
+        supabase.table("LikedPlaces")
+        .select("place_id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    liked_place_ids = [item['place_id'] for item in response_liked_places.data]
+    user_relevant_place_ids.extend(liked_place_ids)
+    
+    # Remove duplicates and ensure there are relevant places
+    user_relevant_place_ids = list(set(user_relevant_place_ids))
+
+    if not user_relevant_place_ids:
+        # If no liked/saved places, cannot create profile embedding
+        raise ValueError(f"User {user_id} has no saved or liked places to build a profile embedding.")
+
+    # Fetch the embeddings for these relevant places from the 'Place' table
+    response_user_places_embeddings = (
+        supabase.table("Place")
+        .select("place_id, embedding")
+        .in_("place_id", user_relevant_place_ids)
+        .execute()
+    )
+    user_places_embeddings_data = response_user_places_embeddings.data
+
+    user_embeddings = []
+    for place in user_places_embeddings_data:
+        embedding_str = place['embedding']
+        if embedding_str:
+            try:
+                embedding_list = json.loads(embedding_str)
+                place_embedding = [float(e) for e in embedding_list]
+                if place_embedding:
                     user_embeddings.append(place_embedding)
-                except json.JSONDecodeError:
-                    continue
+            except (json.JSONDecodeError, ValueError):
+                continue
 
-        if user_embeddings:
-            user_profile_embedding = np.mean(user_embeddings, axis=0).tolist()
+    if user_embeddings:
+        user_profile_embedding = np.mean(user_embeddings, axis=0).tolist()
+    else:
+        raise ValueError(f"No valid embeddings found for user {user_id}'s saved/liked places.")
 
     # 3. Calculate Recommendation Scores
     recommendations = []
@@ -104,7 +132,7 @@ def get_recommendations(location_input):
             if place['embedding']:
                 place_vec = np.array(place['embedding']).reshape(1, -1)
                 # Calculate cosine similarity score (taste score) using sklearn
-                cosine_score = sk_cosine_similarity(user_vec, place_vec)[0][0]
+                cosine_score = sk_cosine_similaritys(user_vec, place_vec)[0][0]
 
                 distance = place['distance']
                 distance_score = 1 - (distance / search_radius_km)
