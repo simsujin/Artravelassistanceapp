@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 from typing import Any, Dict, List, Optional
 import recommender_location
+import recommender_intinerary
 import supabase
 
 load_dotenv()
@@ -26,45 +27,19 @@ class LocationRequestModel(BaseModel):
     user_id: str
     lat: float  # 위도는 실수형
     lng: float  # 경도는 실수형
+#여정 장소추천
+# Pydantic model for itinerary recommendation request
+class ItineraryRecommendationRequest(BaseModel):
+    user_id: str
+    lat: float
+    lng: float
+    itinerary_id: int
+    day_id: int
 
 
 @app.get("/")
 def health_check():
     return {"status": "Active"}
-
-# --- 테스트용
-@app.post("/places/details")
-def get_places_details(data: PlaceDetailsRequest):
-    try:
-        print(f"조회 요청 ID 목록: {data.liked_places}")
-
-        if not data.liked_places:
-            return {"count": 0, "results": []}
-
-        # Supabase 쿼리 수정
-        # 1. 컬럼: type (기존 big_category 아님)
-        # 2. 필터: .in_("id", 리스트) -> 리스트 안에 있는 ID들만 가져옴
-        #response = supabase.table("Place") \
-         #   .select("name_en, type, recommended_for") \
-         #   .in_("place_id", data.liked_places) \
-         #   .execute()
-        
-        response = (
-            supabase.table("Place")
-            .select("name_kr")
-            .in_("place_id", data.liked_places)
-            .execute()
-        )
-        
-        # 결과 반환 (DB 컬럼명이 이미 'type'이므로 별도 가공 없이 그대로 줍니다)
-        return {
-            "count": len(response.data),
-            "results": response.data
-        }
-
-    except Exception as e:
-        print(f"에러 발생: {e}")
-        return {"status": "Error", "detail": str(e)}
 
 #위치기반 추천
 @app.post("/recommend/location",response_model=List[Dict[str, Any]])
@@ -88,3 +63,31 @@ async def get_location_based_recommendations(input_data: LocationRequestModel):
     except Exception as e:
         # 에러 발생 시 처리
         raise HTTPException(status_code=500, detail=str(e))
+
+# Itinerary Recommendation
+@app.post("/recommend/itinerary", response_model=List[Dict[str, Any]])
+async def recommend_next_itinerary_place(request_data: ItineraryRecommendationRequest):
+    """
+    User-specific itinerary recommendation based on location, saved/liked places,
+    and excluding existing itinerary places.
+    """
+    try:
+        # Convert Pydantic model to dict for the recommender function
+        input_data = request_data.dict()
+
+        # Call the recommendation logic from recommender_itinerary
+        # The recommender_itinerary module initializes its own supabase client and all_places
+        recommendations = recommender_intinerary.recommend_next_place(input_data)
+
+        if isinstance(recommendations, str):
+            # Handle cases where the recommender returns an error string
+            raise HTTPException(status_code=404, detail=recommendations)
+        else:
+            # Ensure similarity_score is a standard float for JSON serialization
+            for rec_place in recommendations:
+                if 'similarity_score' in rec_place:
+                    rec_place['similarity_score'] = float(rec_place['similarity_score'])
+            return recommendations
+    except Exception as e:
+        print(f"Error during itinerary recommendation: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {e}")
