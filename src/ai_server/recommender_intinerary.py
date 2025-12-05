@@ -136,7 +136,7 @@ def calculate_recommendation_scores(user_profile_embeddings, nearby_places):
                     recommended_places.append({
                         'place_id': place['place_id'],
                         'similarity_score': float(similarity),
-                        'place_details': place
+                        #'place_details': place -> 안보냄
                     })
                 except json.JSONDecodeError:
                     print(f"Warning: Could not parse place embedding string for place_id {place['place_id']}")
